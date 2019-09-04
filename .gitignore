@@ -27,3 +27,8 @@ build/Release
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
+credentials.json
+.env
+db_slack_bot_a/teams/T2J6LLG2W.json
+db_slack_bot_a/users/UCWN04PKQ.json
+token.json
