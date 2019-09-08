@@ -23,6 +23,11 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 /**
+ * Set up Moment
+ */
+var moment = require('moment');
+
+/**
  * Set up Google Sheets API
  */
 const fs = require('fs');
@@ -213,12 +218,11 @@ controller.on('rtm_close', function (bot) {
 
 
 /**
- * Core bot logic goes here!
+ * Core bot logic
  */
-// BEGIN EDITING HERE!
 
 controller.on('bot_channel_join', function (bot, message) {
-    bot.reply(message, "I'm here!")
+    bot.reply(message, "Hello! To check who's on shift at any given time, type \"Who's on shift?\"");
 });
 
 controller.hears('hello', 'direct_message', function (bot, message) {
@@ -231,25 +235,73 @@ controller.on('direct_mention', function (bot, message) {
 
 function whosOnShift(auth, bot, message) {
   const sheets = google.sheets({version: 'v4', auth});
-  sheets.spreadsheets.values.get({
-    spreadsheetId: '1Ed60EmThivWsRZY6XvLaTKYk9fQNjL5bejx7u0kSrEQ',
-    range: 'Fall 2019 Shift Signup!A7:J110',
-  }, (err, res) => {
-    if (err) bot.reply(message, 'The API returned an error: ' + err);
-    const rows = res.data.values;
-    if (rows.length) {
-      bot.reply(message, 'Name, Major:');
-      // Print columns A and E, which correspond to indices 0 and 4.
-      // rows.map((row) => {
-      //   bot.reply(message, `${row[0]}, ${row[4]}`);
-      // });
-    } else {
-      bot.reply(message, 'No data found.');
+  const now = new Date();
+  const dateString = moment().format('[It is] LT [on] dddd, MMMM Do. ');
+  console.log(dateString);
+  const isWeekend = now.getDay() == 0 || now.getDay() == 6;
+  const isBefore = now.getHours() < 9;
+  const isAfter = (now.getHours() == 18 && now.getMinutes() >= 30) || now.getHours() >= 19;
+  const isClosed = isWeekend || isBefore || isAfter;
+  if (isClosed) {
+    bot.reply(message, dateString + "We are closed, so no one is on shift!");
+  } else {
+    var range;
+    switch (now.getDay()) {
+      case 1:
+        console.log("It is Monday");
+        range = 'C6:J24';
+        break;
+      case 2:
+        console.log("It is Tuesday");
+        range = 'C27:J45';
+        break;
+      case 3:
+        console.log("It is Wednesday");
+        range = 'C48:J66';
+        break;
+      case 4:
+        console.log("It is Thursday");
+        range = 'C69:J87';
+        break;
+      case 5:
+        console.log("It is Friday");
+        range = 'C90:J108';
+        break;
+      default:
+        bot.reply(message, "Error retrieving shift data!");
+        break;
     }
-  });
+    sheets.spreadsheets.values.get({
+      spreadsheetId: '1Ed60EmThivWsRZY6XvLaTKYk9fQNjL5bejx7u0kSrEQ',
+      range: 'Fall 2019 Shift Signup!' + range,
+    }, (err, res) => {
+      if (err) bot.reply(message, 'The API returned an error: ' + err);
+      const rows = res.data.values;
+      var row = (now.getHours() - 9) * 2 + Math.floor(now.getMinutes() / 30);
+      if (rows.length) {
+        var onShiftArr = rows[row].filter(name => name != "");
+        switch(onShiftArr.length) {
+          case 0:
+            bot.reply(message, 'No PIs are on shift!');
+            break;
+          case 1:
+            console.log(onShiftArr[0] + ' is on shift!');
+            bot.reply(message, dateString + onShiftArr[0] + ' is on shift!');
+            break;
+          default:
+            onShiftArr[onShiftArr.length - 1] = 'and ' + onShiftArr[onShiftArr.length - 1];
+            const onShift = onShiftArr.join(', ');
+            console.log(onShift + ' are on shift!');
+            bot.reply(message, dateString + onShift + ' are on shift!');
+        }
+      } else {
+        bot.reply(message, 'No data found.');
+      }
+    });
+  }
 }
 
-controller.hears('who\'*s on shift', ['direct_message', 'direct_mention', 'ambient'], function (bot, message) {
+controller.hears("who\’*\'*\‘*s on shift", ['direct_message', 'direct_mention', 'ambient'], function (bot, message) {
   fs.readFile('credentials.json', (err, content) => {
     if (err) return console.log('Error loading client secret file:', err);
     // Authorize a client with credentials, then call the Google Sheets API.
