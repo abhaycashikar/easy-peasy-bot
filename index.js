@@ -249,23 +249,23 @@ function whosOnShift(auth, bot, message) {
     switch (now.getDay()) {
       case 1:
         console.log("It is Monday");
-        range = 'C6:J24';
+        range = 'C6:J24,L6:P24';
         break;
       case 2:
         console.log("It is Tuesday");
-        range = 'C27:J45';
+        range = 'C27:J45,L27:P45';
         break;
       case 3:
         console.log("It is Wednesday");
-        range = 'C48:J66';
+        range = 'C48:J66,L48:P66';
         break;
       case 4:
         console.log("It is Thursday");
-        range = 'C69:J87';
+        range = 'C69:J87,L69:P87';
         break;
       case 5:
         console.log("It is Friday");
-        range = 'C90:J108';
+        range = 'C90:J108,L90:P108';
         break;
       default:
         bot.reply(message, "Error retrieving shift data!");
