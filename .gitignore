@@ -27,8 +27,13 @@ build/Release
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
+
+# Contain sensitive information such as client IDs
 credentials.json
 .env
 db_slack_bot_a/teams/T2J6LLG2W.json
 db_slack_bot_a/users/UCWN04PKQ.json
 token.json
+
+# Used to suppress output from npm start call
+nohup.out
