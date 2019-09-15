@@ -2,11 +2,18 @@
  * A Bot for Slack!
  */
 
+ /**
+ * Specify environment variable location
+ */
+const dotenv = require('dotenv');
+dotenv.config();
+
 /**
  * Open a localtunnel instance for the bot
  */
+var subdomain = process.env.BETA == "yes" ? "swapperbot-beta" : "swapperbot";
 const { exec } = require('child_process');
-exec('lt --port 8765 --subdomain swapperbot', (err, stdout, stderr) => {
+exec('lt --port 8765 --subdomain ' + subdomain, (err, stdout, stderr) => {
   if (err) {
     // node couldn't execute the command
     console.log("error starting localtunnel instance!")
@@ -15,12 +22,6 @@ exec('lt --port 8765 --subdomain swapperbot', (err, stdout, stderr) => {
   console.log(`stdout: ${stdout}`);
   console.log(`stderr: ${stderr}`);
 });
-
-/**
- * Specify environment variable location
- */
-const dotenv = require('dotenv');
-dotenv.config();
 
 /**
  * Set up Moment
