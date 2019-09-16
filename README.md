@@ -14,8 +14,9 @@ A bot to automate shift swapping and makeups for Peer Instructors at The Hive EC
 ```
 npm install
 ```
-**Note:** The bot currently runs on an older version of Botkit (0.7), so confirm that version is installed with `npm list botkit`. If something other than `botkit@0.7.4` is listed, execute `npm install botkit@0.7.4`.
 5. There are certain files needed that I have purposefully excluded from this repository because they contain sensitive information such as client IDs and API keys. Reach out to me if you are looking to set up this bot on your local machine and need these files.
+
+**Note:** The bot currently runs on an older version of Botkit (0.7), so confirm that version is installed with `npm list botkit`. If something other than `botkit@0.7.4` is listed, execute `npm install botkit@0.7.4`.
 
 ## Running
 ```
