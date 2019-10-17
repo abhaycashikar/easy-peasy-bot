@@ -302,11 +302,55 @@ function whosOnShift(auth, bot, message) {
   }
 }
 
+function smash(auth, bot, message) {
+  const sheets = google.sheets({version: 'v4', auth});
+  sheets.spreadsheets.values.get({
+    spreadsheetId: '1op3yxM_aSzV88jGjsX9RpvcjB9qW9xx6dym7RCO93zk',
+    range: 'Smash Ladder!A1:AZ1',
+  }, (err, res) => {
+    if (err) bot.reply(message, 'The API returned an error: ' + err);
+    const rows = res.data.values;
+    var row = rows[0];
+    const winner = message.text.substring(0,message.text.indexOf(" smashed "));
+    const loser = message.text.substring(message.text.indexOf(" smashed ") + 9);
+    if (rows.length) {
+      const winnerIndex = row.findIndex(name => {return name == winner});
+      const loserIndex = row.findIndex(name => {return name == loser});
+      if (winnerIndex == -1 || loserIndex == -1) {
+        bot.reply(message, 'Did not find one of the players!' + row);
+        return;
+      } else if (winnerIndex < loserIndex) {
+        bot.reply(message, winner + " is already ranked above " + loser + "!");
+        return;
+      } else {
+        row[loserIndex] = winner;
+        row[winnerIndex] = loser;
+        sheets.spreadsheets.values.update({
+          spreadsheetId: '1op3yxM_aSzV88jGjsX9RpvcjB9qW9xx6dym7RCO93zk',
+          range: 'Smash Ladder!A1:AZ1',
+          values: row,
+        })
+        bot.reply(message, 'Congratulations ' + winner + '! Your positions have been swapped.');
+      }
+    } else {
+      bot.reply(message, 'No data found.');
+    }
+  });
+}
+
 controller.hears("who\’*\'*\‘*s on shift", ['direct_message', 'direct_mention', 'ambient'], function (bot, message) {
   fs.readFile('credentials.json', (err, content) => {
     if (err) return console.log('Error loading client secret file:', err);
     // Authorize a client with credentials, then call the Google Sheets API.
     authorizeForBot(JSON.parse(content), whosOnShift, bot, message);
+  });
+})
+
+controller.hears("^.*smashed.*$", ['direct_message', 'direct_mention', 'ambient'], function (bot, message) {
+  fs.readFile('credentials.json', (err, content) => {
+    if (err) return console.log('Error loading client secret file:', err);
+    // Authorize a client with credentials, then call the Google Sheets API.
+    authorizeForBot(JSON.parse(content), smash, bot, message);
   });
 })
 
