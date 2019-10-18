@@ -322,6 +322,9 @@ function smash(auth, bot, message) {
       } else if (winnerIndex < loserIndex) {
         bot.reply(message, winner + " is already ranked above " + loser + "!");
         return;
+      } else if (winnerIndex - loserIndex > (winnerIndex + 1) / 2) {
+        bot.reply(message, loser + " is out of range of " + winner + "!");
+        return;
       } else {
         row[loserIndex] = winner;
         row[winnerIndex] = loser;
