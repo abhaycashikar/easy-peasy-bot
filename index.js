@@ -328,9 +328,17 @@ function smash(auth, bot, message) {
         sheets.spreadsheets.values.update({
           spreadsheetId: '1op3yxM_aSzV88jGjsX9RpvcjB9qW9xx6dym7RCO93zk',
           range: 'Smash Ladder!A1:AZ1',
-          values: row,
-        })
-        bot.reply(message, 'Congratulations ' + winner + '! Your positions have been swapped.');
+          valueInputOption: 'USER_ENTERED',
+          resource: {
+            values: [row]
+          }
+        }, err => {
+          if (err) {
+            bot.reply(message, 'The API returned an error: ' + err);
+          } else {
+            bot.reply(message, 'Congratulations ' + winner + '! Your positions have been swapped.');
+          }
+        });
       }
     } else {
       bot.reply(message, 'No data found.');
