@@ -309,7 +309,7 @@ function whosOnShift(auth, bot, message) {
 
 function whosHere(auth, bot, message) {
   const options = {
-    url: 'https://sums.gatech.edu/SUMSAPI/rest/API/equipmentGroup_tools?DepartmentID=87&userName=' + process.env.USERNAME,
+    url: 'https://sums.gatech.edu/SUMSAPI/rest/API/equipmentGroup_tools?DepartmentID=87&userName=' + process.env.SUMS_USERNAME,
     json: true,
     headers: {
       'Authorization': process.env.SUMS_AUTH
