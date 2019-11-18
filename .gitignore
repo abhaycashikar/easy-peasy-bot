@@ -37,3 +37,6 @@ token.json
 
 # Used to suppress output from npm start call
 nohup.out
+
+# Used to automatically start bot on Windows
+startbot.bat
