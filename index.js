@@ -312,12 +312,17 @@ function whosHere(auth, bot, message) {
     url: 'https://sums.gatech.edu/SUMSAPI/rest/API/equipmentGroup_tools?DepartmentID=87&userName=' + process.env.USERNAME,
     json: true,
     headers: {
-      'Authorization': 'SMJXV336PMXVAMF9D0XF'
+      'Authorization': process.env.SUMS_AUTH
     }
   };
   request.post(options, "POST", (err, res, body) => {
     if (err) { return console.log(err); }
-    var pis = body[0].toolCurrentUser.split(",");
+    var pis;
+    body.forEach(tool => {
+      if (tool.toolName.includes("Peer Instructor")) {
+        pis = tool.toolCurrentUser.split(",");
+      }
+    });
     if (pis.length == 0) {
       bot.reply(message, "No one is on shift and at the IDC.");
     } else if (pis.length == 1) {
