@@ -2,6 +2,11 @@
  * A Bot for Slack!
  */
 
+/**
+ * Include request package
+ */
+const request = require('request');
+
  /**
  * Specify environment variable location
  */
@@ -302,6 +307,31 @@ function whosOnShift(auth, bot, message) {
   }
 }
 
+function whosHere(auth, bot, message) {
+  const options = {
+    url: 'https://sums.gatech.edu/SUMSAPI/rest/API/equipmentGroup_tools?DepartmentID=87&userName=' + process.env.USERNAME,
+    json: true,
+    headers: {
+      'Authorization': 'SMJXV336PMXVAMF9D0XF'
+    }
+  };
+  request.post(options, "POST", (err, res, body) => {
+    if (err) { return console.log(err); }
+    var pis = body[0].toolCurrentUser.split(",");
+    if (pis.length == 0) {
+      bot.reply(message, "No one is on shift and at the IDC.");
+    } else if (pis.length == 1) {
+      bot.reply(message, pis + " is on shift and at the IDC.");
+    } else if (pis.length == 2) {
+      pis[0] += " and "
+      bot.reply(message, pis + " are on shift and at the IDC.");
+    } else {
+      pis[pis.length - 1] = 'and ' + pis[pis.length - 1];
+      bot.reply(message, pis.join(", ") + " are on shift and at the IDC.");
+    }
+  })
+}
+
 function smash(auth, bot, message) {
   const sheets = google.sheets({version: 'v4', auth});
   sheets.spreadsheets.values.get({
@@ -349,6 +379,44 @@ function smash(auth, bot, message) {
   });
 }
 
+function readyToSmash(auth, bot, message) {
+  const sheets = google.sheets({version: 'v4', auth});
+  sheets.spreadsheets.values.get({
+    spreadsheetId: '1op3yxM_aSzV88jGjsX9RpvcjB9qW9xx6dym7RCO93zk',
+    range: 'Smash Ladder!A1:AZ1',
+  }, (err, res) => {
+    if (err) bot.reply(message, 'The API returned an error: ' + err);
+    const rows = res.data.values;
+    var row = rows[0];
+    var contestant = controller.storage.users.get(message.user, function(err, user_data) {
+      if (err) bot.reply("oops");
+    })
+    if (rows.length) {
+      if (row.filter(name => name == contestant).length > 0) {
+        bot.reply(message, "You are already entered to SMASH.");
+      } else {
+        row.push(contestant);
+        sheets.spreadsheets.values.update({
+          spreadsheetId: '1op3yxM_aSzV88jGjsX9RpvcjB9qW9xx6dym7RCO93zk',
+          range: 'Smash Ladder!A1:AZ1',
+          valueInputOption: 'USER_ENTERED',
+          resource: {
+            values: [row]
+          }
+        }, err => {
+          if (err) {
+            bot.reply(message, 'The API returned an error: ' + err);
+          } else {
+            bot.reply(message, 'Congratulations ' + contestant + '! You are now entered to SMASH.');
+          }
+        });
+      }
+    } else {
+      bot.reply(message, 'No data found.');
+    }
+  });
+}
+
 controller.hears("who\’*\'*\‘*s on shift", ['direct_message', 'direct_mention', 'ambient'], function (bot, message) {
   fs.readFile('credentials.json', (err, content) => {
     if (err) return console.log('Error loading client secret file:', err);
@@ -357,11 +425,27 @@ controller.hears("who\’*\'*\‘*s on shift", ['direct_message', 'direct_mentio
   });
 })
 
+controller.hears("who\’*\'*\‘*s here", ['direct_message', 'direct_mention', 'ambient'], function (bot, message) {
+  fs.readFile('credentials.json', (err, content) => {
+    if (err) return console.log('Error loading client secret file:', err);
+    // Authorize a client with credentials, then call the Google Sheets API.
+    authorizeForBot(JSON.parse(content), whosHere, bot, message);
+  });
+})
+
 controller.hears("^.*smashed.*$", ['direct_message', 'direct_mention', 'ambient'], function (bot, message) {
   fs.readFile('credentials.json', (err, content) => {
     if (err) return console.log('Error loading client secret file:', err);
     // Authorize a client with credentials, then call the Google Sheets API.
     authorizeForBot(JSON.parse(content), smash, bot, message);
+  });
+})
+
+controller.hears("I am ready to smash", ['direct_message', 'direct_mention', 'ambient'], function (bot, message) {
+  fs.readFile('credentials.json', (err, content) => {
+    if (err) return console.log('Error loading client secret file:', err);
+    // Authorize a client with credentials, then call the Google Sheets API.
+    authorizeForBot(JSON.parse(content), readyToSmash, bot, message);
   });
 })
 
